@@ -33,18 +33,31 @@ async function run() {
 
 
         const courses = client.db("HorizonDB").collection("courses");
+        const instructors = client.db("HorizonDB").collection("instructors");
 
         //get all courses
-        app.get('/courses', async(req, res)=> {
+        app.get('/courses', async (req, res) => {
             const result = await courses.find().toArray();
             res.send(result);
         })
-        
+
         //get courses categorically
-        app.get('/courses/:category', async(req, res)=> {
+        app.get('/courses/:category', async (req, res) => {
             const category = req.params.category;
-            const query = {category: category};
-            const result = await courses.find(query).toArray();
+            if (category === "all") {
+                const result = await courses.find().toArray();
+                res.send(result);
+            }
+            else {
+                const query = { category: category };
+                const result = await courses.find(query).toArray();
+                res.send(result);
+            }
+        })
+
+        //get instructors
+        app.get('/instructors', async(req, res)=> {
+            const result = await instructors.find().toArray();
             res.send(result);
         })
 
