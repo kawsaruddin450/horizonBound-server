@@ -34,6 +34,7 @@ async function run() {
 
         const courses = client.db("HorizonDB").collection("courses");
         const instructors = client.db("HorizonDB").collection("instructors");
+        const users = client.db("HorizonDB").collection("users");
 
         //get all courses
         app.get('/courses', async (req, res) => {
@@ -55,9 +56,24 @@ async function run() {
             }
         })
 
+        //get courses by instructor
+        app.get('/courses/:instructor', async(req, res) => {
+            const instructor = req.params.instructor;
+            const query = {instructor: instructor};
+            const result = await courses.find(query).toArray();
+            res.send(result);
+        })
+
         //get instructors
         app.get('/instructors', async(req, res)=> {
             const result = await instructors.find().toArray();
+            res.send(result);
+        })
+
+        //post users
+        app.post('/users', async(req, res) => {
+            const user = req.body;
+            const result = await users.insertOne(user);
             res.send(result);
         })
 
