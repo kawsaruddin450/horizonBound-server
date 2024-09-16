@@ -34,8 +34,17 @@ async function run() {
 
         const courses = client.db("HorizonDB").collection("courses");
 
+        //get all courses
         app.get('/courses', async(req, res)=> {
             const result = await courses.find().toArray();
+            res.send(result);
+        })
+        
+        //get courses categorically
+        app.get('/courses/:category', async(req, res)=> {
+            const category = req.params.category;
+            const query = {category: category};
+            const result = await courses.find(query).toArray();
             res.send(result);
         })
 
