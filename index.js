@@ -57,9 +57,8 @@ async function run() {
         })
 
         //get courses by instructor
-        app.get('/courses/:instructor', async(req, res) => {
-            const instructor = req.params.instructor;
-            const query = {instructor: instructor};
+        app.get('/coursesby/', async(req, res)=> {
+            const query = {instructor_email: req.query.email}
             const result = await courses.find(query).toArray();
             res.send(result);
         })
