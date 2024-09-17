@@ -134,6 +134,18 @@ async function run() {
             res.send(result);
         })
 
+        // check if admin or not
+        app.get('/users/admin/:email', verifyJwt, async(req, res) => {
+            const email = req.params.email;
+            if(req.decoded.email !== email){
+                res.status(403).send({error: true, message: "Forbidden Access"})
+            }
+            const query = {email: email};
+            const user = await users.findOne(query);
+            const result = {admin: user?.role === "admin"};
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
