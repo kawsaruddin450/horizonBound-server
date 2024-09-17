@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const app = express();
 const cors = require('cors');
@@ -36,6 +37,13 @@ async function run() {
         const instructors = client.db("HorizonDB").collection("instructors");
         const users = client.db("HorizonDB").collection("users");
         const selected = client.db("HorizonDB").collection("selectedCourses");
+
+        //create jwt 
+        app.post('/jwt/', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+            res.send({token});
+        })
 
         //get all courses
         app.get('/courses', async (req, res) => {
