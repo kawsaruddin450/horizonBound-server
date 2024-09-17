@@ -52,6 +52,17 @@ async function run() {
         const users = client.db("HorizonDB").collection("users");
         const selected = client.db("HorizonDB").collection("selectedCourses");
 
+        const verifyAdmin = async(req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = {email: decodedEmail};
+
+            const user = await users.findOne(query);
+            if(user?.role !== 'admin'){
+                res.status(403).send({error: true, message: "Forbidden Access"});
+            }
+            next();
+        }
+
         //create jwt 
         app.post('/jwt/', (req, res) => {
             const user = req.body;
