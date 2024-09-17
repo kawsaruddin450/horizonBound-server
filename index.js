@@ -13,6 +13,20 @@ app.get('/', (req, res) => {
     res.send(`HorizonBound Server is running at: ${port}`);
 })
 
+const verifyJwt = (req, res, next) => {
+    const authorization = req.headers.authorization;
+    if(!authorization){
+        return res.status(401).send({error: true, message: "Unauthorized Access!"})
+    }
+    const token = authorization.split(' ')[1]
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if(err){
+            return res.send(401).send({error: true, message: "Unauthorized Access"})
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -84,6 +98,7 @@ async function run() {
             const result = await instructors.find().toArray();
             res.send(result);
         })
+
 
         //post users
         app.post('/users', async(req, res) => {
