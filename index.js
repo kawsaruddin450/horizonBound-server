@@ -100,6 +100,25 @@ async function run() {
         })
 
 
+        //get selected courses for logged in user
+        app.get('/selected/', verifyJwt, async(req, res) => {
+            const email = req.query?.email;
+            let query = {};
+
+            if(!email){
+                return res.send([]);
+            }
+            if(req.decoded.email !== email){
+                return res.status(403).send({error: true, message: "Forbidden access"});
+            }
+            if(email){
+                query = {email: email};
+                const result = await selected.find(query).toArray();
+                res.send(result);
+            }
+        })
+
+
         //post users
         app.post('/users', async(req, res) => {
             const user = req.body;
