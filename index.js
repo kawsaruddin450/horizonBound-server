@@ -35,6 +35,7 @@ async function run() {
         const courses = client.db("HorizonDB").collection("courses");
         const instructors = client.db("HorizonDB").collection("instructors");
         const users = client.db("HorizonDB").collection("users");
+        const selected = client.db("HorizonDB").collection("selectedCourses");
 
         //get all courses
         app.get('/courses', async (req, res) => {
@@ -60,6 +61,13 @@ async function run() {
         app.get('/coursesby/', async(req, res)=> {
             const query = {instructor_email: req.query.email}
             const result = await courses.find(query).toArray();
+            res.send(result);
+        })
+
+        // add courses to selected list (before payment, primary selection. Just like cart)
+        app.post('/courses', async(req, res)=> {
+            const course = req.body;
+            const result = await selected.insertOne(course);
             res.send(result);
         })
 
