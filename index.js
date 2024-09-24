@@ -109,11 +109,26 @@ async function run() {
         })
 
         //add a new course to DB
-        app.post('/courses', verifyJwt, verifyInstructor, async(req, res) => {
+        app.post('/courses', verifyJwt, verifyInstructor, async (req, res) => {
             const course = req.body;
             console.log(course);
 
             const result = await courses.insertOne(course);
+            res.send(result);
+        })
+
+        //update a course status (approved/denied)
+        app.patch('/courses/status/:id', verifyJwt, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const status = req.query.status;
+            const filter = { _id: new ObjectId(id) };
+            const updateCourse = {
+                $set: {
+                    status: status,
+                },
+            };
+
+            const result = await courses.updateOne(filter, updateCourse);
             res.send(result);
         })
 
@@ -177,14 +192,14 @@ async function run() {
         })
 
         // check if instructor or not
-        app.get('/users/instructor/:email', verifyJwt, async(req, res)=> {
+        app.get('/users/instructor/:email', verifyJwt, async (req, res) => {
             const email = req.params.email;
-            if(req.decoded.email !== req.params.email){
-                res.status(403).send({error: true, message: "Forbidden Access."});
+            if (req.decoded.email !== req.params.email) {
+                res.status(403).send({ error: true, message: "Forbidden Access." });
             }
-            const query = {email: email}
+            const query = { email: email }
             const user = await users.findOne(query);
-            const result = {instructor: user?.role === "instructor"};
+            const result = { instructor: user?.role === "instructor" };
             res.send(result);
         })
 
