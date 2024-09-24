@@ -108,8 +108,17 @@ async function run() {
             res.send(result);
         })
 
+        //add a new course to DB
+        app.post('/courses', verifyJwt, verifyInstructor, async(req, res) => {
+            const course = req.body;
+            console.log(course);
+
+            const result = await courses.insertOne(course);
+            res.send(result);
+        })
+
         // add courses to selected list (before payment, primary selection. Just like cart)
-        app.post('/courses', async (req, res) => {
+        app.post('/select', async (req, res) => {
             const course = req.body;
             const result = await selected.insertOne(course);
             res.send(result);
@@ -147,7 +156,6 @@ async function run() {
             const result = await selected.deleteOne(query);
             res.send(result);
         })
-
 
         //post users
         app.post('/users', async (req, res) => {
