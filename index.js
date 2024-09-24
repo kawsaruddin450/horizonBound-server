@@ -15,13 +15,13 @@ app.get('/', (req, res) => {
 
 const verifyJwt = (req, res, next) => {
     const authorization = req.headers.authorization;
-    if(!authorization){
-        return res.status(401).send({error: true, message: "Unauthorized Access!"})
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: "Unauthorized Access!" })
     }
     const token = authorization.split(' ')[1]
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-        if(err){
-            return res.send(401).send({error: true, message: "Unauthorized Access"})
+        if (err) {
+            return res.send(401).send({ error: true, message: "Unauthorized Access" })
         }
         req.decoded = decoded;
         next();
@@ -52,13 +52,13 @@ async function run() {
         const users = client.db("HorizonDB").collection("users");
         const selected = client.db("HorizonDB").collection("selectedCourses");
 
-        const verifyAdmin = async(req, res, next) => {
+        const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
-            const query = {email: decodedEmail};
+            const query = { email: decodedEmail };
 
             const user = await users.findOne(query);
-            if(user?.role !== 'admin'){
-                res.status(403).send({error: true, message: "Forbidden Access"});
+            if (user?.role !== 'admin') {
+                res.status(403).send({ error: true, message: "Forbidden Access" });
             }
             next();
         }
@@ -66,8 +66,8 @@ async function run() {
         //create jwt 
         app.post('/jwt/', (req, res) => {
             const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-            res.send({token});
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token });
         })
 
         //get all courses
@@ -91,77 +91,90 @@ async function run() {
         })
 
         //get courses by instructor
-        app.get('/coursesby/', async(req, res)=> {
-            const query = {instructor_email: req.query.email}
+        app.get('/coursesby/', async (req, res) => {
+            const query = { instructor_email: req.query.email }
             const result = await courses.find(query).toArray();
             res.send(result);
         })
 
         // add courses to selected list (before payment, primary selection. Just like cart)
-        app.post('/courses', async(req, res)=> {
+        app.post('/courses', async (req, res) => {
             const course = req.body;
             const result = await selected.insertOne(course);
             res.send(result);
         })
 
         //get instructors
-        app.get('/instructors', async(req, res)=> {
+        app.get('/instructors', async (req, res) => {
             const result = await instructors.find().toArray();
             res.send(result);
         })
 
 
         //get selected courses for logged in user
-        app.get('/selected/', verifyJwt, async(req, res) => {
+        app.get('/selected/', verifyJwt, async (req, res) => {
             const email = req.query?.email;
             let query = {};
 
-            if(!email){
+            if (!email) {
                 return res.send([]);
             }
-            if(req.decoded.email !== email){
-                return res.status(403).send({error: true, message: "Forbidden access"});
+            if (req.decoded.email !== email) {
+                return res.status(403).send({ error: true, message: "Forbidden access" });
             }
-            if(email){
-                query = {email: email};
+            if (email) {
+                query = { email: email };
                 const result = await selected.find(query).toArray();
                 res.send(result);
             }
         })
 
         //delete one selected course using id
-        app.delete('/selected/:id', verifyJwt, async(req, res) => {
+        app.delete('/selected/:id', verifyJwt, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await selected.deleteOne(query);
             res.send(result);
         })
 
 
         //post users
-        app.post('/users', async(req, res) => {
+        app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await users.insertOne(user);
             res.send(result);
         })
 
         // check if admin or not
-        app.get('/users/admin/:email', verifyJwt, async(req, res) => {
+        app.get('/users/admin/:email', verifyJwt, async (req, res) => {
             const email = req.params.email;
-            if(req.decoded.email !== email){
-                res.status(403).send({error: true, message: "Forbidden Access"})
+            if (req.decoded.email !== email) {
+                res.status(403).send({ error: true, message: "Forbidden Access" })
             }
-            const query = {email: email};
+            const query = { email: email };
             const user = await users.findOne(query);
-            const result = {admin: user?.role === "admin"};
+            const result = { admin: user?.role === "admin" };
             res.send(result);
         })
 
         //get all users
-        app.get('/users', verifyJwt, verifyAdmin, async(req, res)=> {
+        app.get('/users', verifyJwt, verifyAdmin, async (req, res) => {
             const result = await users.find().toArray();
             res.send(result);
         })
+
+        // make admin api
+        app.patch('/users/admin/:id', verifyJwt, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    role: `admin`,
+                },
+            };
+            const result = await users.updateOne(filter, updateDoc);
+            res.send(result);
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
