@@ -132,6 +132,15 @@ async function run() {
             res.send(result);
         })
 
+        //delete a course
+        app.delete('/courses/:id', verifyJwt, async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+
+            const result = await courses.deleteOne(query);
+            res.send(result);
+        })
+
         // add courses to selected list (before payment, primary selection. Just like cart)
         app.post('/select', async (req, res) => {
             const course = req.body;
