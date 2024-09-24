@@ -63,6 +63,17 @@ async function run() {
             next();
         }
 
+        const verifyInstructor = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+
+            const user = await users.findOne(query);
+            if (user?.role !== 'instructor') {
+                res.status(403).send({ error: true, message: "Forbidden Access" });
+            }
+            next();
+        }
+
         //create jwt 
         app.post('/jwt/', (req, res) => {
             const user = req.body;
@@ -154,6 +165,18 @@ async function run() {
             const query = { email: email };
             const user = await users.findOne(query);
             const result = { admin: user?.role === "admin" };
+            res.send(result);
+        })
+
+        // check if instructor or not
+        app.get('/users/instructor/:email', verifyJwt, async(req, res)=> {
+            const email = req.params.email;
+            if(req.decoded.email !== req.params.email){
+                res.status(403).send({error: true, message: "Forbidden Access."});
+            }
+            const query = {email: email}
+            const user = await users.findOne(query);
+            const result = {instructor: user?.role === "instructor"};
             res.send(result);
         })
 
