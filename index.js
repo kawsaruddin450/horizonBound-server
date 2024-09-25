@@ -50,6 +50,7 @@ async function run() {
         const courses = client.db("HorizonDB").collection("courses");
         const users = client.db("HorizonDB").collection("users");
         const selected = client.db("HorizonDB").collection("selectedCourses");
+        const feedbacks = client.db("HorizonDB").collection("feedbacks");
 
         const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
@@ -83,6 +84,14 @@ async function run() {
         //get all courses
         app.get('/courses', async (req, res) => {
             const result = await courses.find().toArray();
+            res.send(result);
+        })
+
+        //get a course by id
+        app.get('/courses/:id', async(req, res)=> {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await courses.findOne(query);
             res.send(result);
         })
 
@@ -243,6 +252,13 @@ async function run() {
             const result = await users.updateOne(filter, updateDoc);
             res.send(result);
         });
+
+        //save feedbacks api
+        app.post('/feedbacks', verifyJwt, verifyAdmin, async(req, res) => {
+            const feedback = req.body;
+            const result = await feedbacks.insertOne(feedback);
+            res.send(result);
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
