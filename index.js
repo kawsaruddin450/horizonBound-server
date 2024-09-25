@@ -88,10 +88,28 @@ async function run() {
         })
 
         //get a course by id
-        app.get('/courses/:id', async(req, res)=> {
+        app.get('/courses/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await courses.findOne(query);
+            res.send(result);
+        })
+
+        app.patch('/courses/:id', verifyJwt, verifyInstructor, async (req, res) => {
+            const id = req.params.id;
+            const course = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    name: course.name,
+                    image: course.image,
+                    price: course.price,
+                    available_seats: course.available_seats,
+                    description: course.description,
+                    status: course.status,
+                },
+            };
+            const result = await courses.updateOne(filter, updateDoc);
             res.send(result);
         })
 
@@ -141,9 +159,9 @@ async function run() {
         })
 
         //delete a course
-        app.delete('/courses/:id', verifyJwt, async(req, res) => {
+        app.delete('/courses/:id', verifyJwt, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
 
             const result = await courses.deleteOne(query);
             res.send(result);
@@ -158,7 +176,7 @@ async function run() {
 
         //get instructors
         app.get('/instructors', async (req, res) => {
-            const query = {role: 'instructor'}
+            const query = { role: 'instructor' }
             const result = await users.find(query).toArray();
             res.send(result);
         })
@@ -254,21 +272,21 @@ async function run() {
         });
 
         //save feedbacks api
-        app.post('/feedbacks', verifyJwt, verifyAdmin, async(req, res) => {
+        app.post('/feedbacks', verifyJwt, verifyAdmin, async (req, res) => {
             const feedback = req.body;
             const result = await feedbacks.insertOne(feedback);
             res.send(result);
         })
 
         //get feedbacks for an instructor
-        app.get('/feedbacks', verifyJwt, verifyInstructor, async(req, res) => {
+        app.get('/feedbacks', verifyJwt, verifyInstructor, async (req, res) => {
             const email = req.query.email;
-            if(email !== req.decoded.email){
-                res.status(403).send({error: true, message: "Forbidden Access!"});
+            if (email !== req.decoded.email) {
+                res.status(403).send({ error: true, message: "Forbidden Access!" });
             }
 
-            const query = {instructor_email: email};
-            const result =await feedbacks.find(query).toArray();
+            const query = { instructor_email: email };
+            const result = await feedbacks.find(query).toArray();
             res.send(result);
         })
 
