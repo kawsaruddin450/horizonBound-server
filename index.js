@@ -48,7 +48,6 @@ async function run() {
 
 
         const courses = client.db("HorizonDB").collection("courses");
-        const instructors = client.db("HorizonDB").collection("instructors");
         const users = client.db("HorizonDB").collection("users");
         const selected = client.db("HorizonDB").collection("selectedCourses");
 
@@ -150,7 +149,8 @@ async function run() {
 
         //get instructors
         app.get('/instructors', async (req, res) => {
-            const result = await instructors.find().toArray();
+            const query = {role: 'instructor'}
+            const result = await users.find(query).toArray();
             res.send(result);
         })
 
