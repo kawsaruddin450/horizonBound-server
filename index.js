@@ -52,6 +52,7 @@ async function run() {
         const users = client.db("HorizonDB").collection("users");
         const selected = client.db("HorizonDB").collection("selectedCourses");
         const feedbacks = client.db("HorizonDB").collection("feedbacks");
+        const payments = client.db("HorizonDB").collection("payments");
 
         const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
@@ -210,9 +211,12 @@ async function run() {
         })
 
         //payment intent api
-        app.post('create-payment-intent', async (req, res) => {
+        app.post('/create-payment-intent', verifyJwt, async (req, res) => {
             const { price } = req.body;
-            const amount = price * 100;
+            const amount = price*100;
+            if(isNaN(amount)){
+                res.send({error: true, message: "Not a valid number"})
+            }
 
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
@@ -220,6 +224,17 @@ async function run() {
                 payment_method_types: ['card'],
             });
             res.send({clientSecret: paymentIntent.client_secret});
+        })
+
+        //save payment
+        app.post('/payments', verifyJwt, async(req, res)=> {
+            const payment = req.body;
+            const insertedResult = await payments.insertOne(payment);
+
+            const query = {_id: { $in: payment.items.map(id => new ObjectId(id))}};
+            const deletedResult = await selected.deleteMany(query);
+
+            res.send({insertedResult, deletedResult});
         })
 
         //post users
